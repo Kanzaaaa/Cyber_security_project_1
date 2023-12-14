@@ -87,10 +87,11 @@ class RegisterPage(FormView):
         kwargs = super().get_form_kwargs()
         kwargs.pop('request', None)
         return kwargs
-    
+
 #Flaw 4 A02:2021-Cryptographic Failures
 #Solution
-#class RegisterView(FormView):
+#from django.contrib.auth.forms import UserCreationForm
+#class RegisterPage(FormView):
 #    template_name = 'base/register.html'
 #    form_class = UserCreationForm
 #    redirect_authenticated_user = True
@@ -100,12 +101,12 @@ class RegisterPage(FormView):
 #        user = form.save()
 #        if user is not None:
 #            login(self.request, user)
-#        return super().form_valid(form)
+#        return super(RegisterPage, self).form_valid(form)
 
 #    def get(self, *args, **kwargs):
 #        if self.request.user.is_authenticated:
 #            return redirect('tasks')
-#        return super().get(*args, **kwargs)
+#        return super(RegisterPage, self).get(*args, **kwargs)
 
 
 
@@ -186,17 +187,17 @@ class TaskCreate(CreateView):
 #Flaw 1
 #A03:2021-Injection
 # Solution is to remove this function
-    def form_valid(self, form):
+    def form_valid(self,form):
         title = form.cleaned_data['title']
         description = form.cleaned_data['description']
 
-        raw_query = """
+        raw_query = f"""
             INSERT INTO base_task (title, description, complete, created)
-            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            VALUES ('{title}', '{description}', 0, CURRENT_TIMESTAMP)
         """
         with connection.cursor() as cursor:
-            cursor.execute(raw_query, [title, description, False])
-            
+            cursor.execute(raw_query)
+
         return HttpResponseRedirect(self.success_url)
 
 #Flaw 2
